@@ -162,6 +162,7 @@ export default function App() {
           components={components}
           selectedId={selectedId}
           onSelectComponent={handleSelectComponent}
+          onDeselectComponent={() => setSelectedId(null)}
           onDeleteComponent={handleDeleteComponent}
           onDrop={handleDrop}
           onDragOver={handleDragOver}

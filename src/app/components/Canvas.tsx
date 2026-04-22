@@ -6,6 +6,7 @@ interface CanvasProps {
   components: ComponentInstance[];
   selectedId: string | null;
   onSelectComponent: (id: string) => void;
+  onDeselectComponent: () => void;
   onDeleteComponent: (id: string) => void;
   onDrop: (e: React.DragEvent) => void;
   onDragOver: (e: React.DragEvent) => void;
@@ -21,6 +22,7 @@ export function Canvas({
   components,
   selectedId,
   onSelectComponent,
+  onDeselectComponent,
   onDeleteComponent,
   onDrop,
   onDragOver,
@@ -31,13 +33,21 @@ export function Canvas({
 }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    // Only deselect if clicking directly on the canvas (not on a component)
+    if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('canvas-area')) {
+      onDeselectComponent();
+    }
+  };
+
   return (
     <div className="flex-1 bg-gray-100 p-8 overflow-auto flex items-start justify-center">
       <div
         ref={canvasRef}
-        className="relative bg-white rounded-lg shadow-sm"
+        className="canvas-area relative bg-white rounded-lg shadow-sm"
         onDrop={onDrop}
         onDragOver={onDragOver}
+        onClick={handleCanvasClick}
         style={{
           width: viewportSize.width,
           height: viewportSize.height,

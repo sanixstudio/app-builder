@@ -1,6 +1,6 @@
 import { ComponentInstance } from '../types';
 import { Trash2, Star, Zap, Award, Heart, TrendingUp, Shield, Move, Maximize2 } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, JSX } from 'react';
 
 interface CanvasComponentProps {
   component: ComponentInstance;
@@ -74,7 +74,7 @@ export function CanvasComponent({ component, isSelected, onSelect, onDelete, onM
     };
   };
 
-  useState(() => {
+  useEffect(() => {
     if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -83,15 +83,7 @@ export function CanvasComponent({ component, isSelected, onSelect, onDelete, onM
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  });
-
-  if (isDragging || isResizing) {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  } else {
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  }
+  }, [isDragging, isResizing]);
 
   const renderComponent = () => {
     const { type, props } = component;
@@ -427,45 +419,54 @@ export function CanvasComponent({ component, isSelected, onSelect, onDelete, onM
 
   return (
     <div
-      className={`absolute cursor-move transition-shadow ${
-        isSelected ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:ring-1 hover:ring-gray-300'
-      } ${isDragging ? 'opacity-70' : ''} bg-white`}
+      className={`absolute cursor-move transition-all ${
+        isSelected 
+          ? 'ring-2 ring-blue-500 shadow-xl z-10' 
+          : 'hover:ring-1 hover:ring-gray-300 hover:shadow-md'
+      } ${isDragging ? 'opacity-80' : ''}`}
       style={{
         left: `${component.position.x}px`,
         top: `${component.position.y}px`,
         width: `${component.size.width}px`,
         height: `${component.size.height}px`,
       }}
-      onMouseDown={handleMouseDown}
-      onClick={onSelect}
+      onMouseDown={(e) => {
+        // Prevent any child elements from capturing the event
+        e.preventDefault();
+        e.stopPropagation();
+        handleMouseDown(e);
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect();
+      }}
     >
-      <div className="w-full h-full overflow-hidden p-2">
+      <div className="w-full h-full">
         {renderComponent()}
       </div>
 
       {isSelected && (
         <>
-          <div className="absolute top-0 left-0 right-0 bg-blue-600 text-white px-2 py-1 text-xs flex items-center justify-between -mt-6">
-            <div className="flex items-center gap-1">
-              <Move className="w-3 h-3" />
-              <span className="capitalize">{component.type}</span>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete();
-              }}
-              className="hover:bg-blue-700 p-0.5 rounded"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          </div>
+          {/* Delete button at top-right corner */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="absolute -top-3 -right-3 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-md transition-colors z-20"
+            title="Delete component"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
+          {/* Resize handle at bottom-right */}
           <div
-            className="resize-handle absolute bottom-0 right-0 w-4 h-4 bg-blue-600 cursor-nwse-resize"
+            className="resize-handle absolute bottom-0 right-0 w-5 h-5 bg-white border-2 border-blue-500 cursor-nwse-resize rounded-tl-md hover:bg-blue-50"
             onMouseDown={handleResizeMouseDown}
           >
-            <Maximize2 className="w-3 h-3 text-white" />
+            <Maximize2 className="w-3 h-3 text-blue-500 absolute bottom-0.5 right-0.5" />
           </div>
         </>
       )}
