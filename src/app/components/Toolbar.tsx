@@ -6,13 +6,17 @@ interface ToolbarProps {
   lastSavedAt: number | null;
   onClearAll: () => void;
   onExportHTML: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
   componentCount: number;
   viewport: 'desktop' | 'mobile';
   onViewportChange: (viewport: 'desktop' | 'mobile') => void;
   onPreview: () => void;
 }
 
-export function Toolbar({ pageTitle, onPageTitleChange, lastSavedAt, onClearAll, onExportHTML, componentCount, viewport, onViewportChange, onPreview }: ToolbarProps) {
+export function Toolbar({ pageTitle, onPageTitleChange, lastSavedAt, onClearAll, onExportHTML, onUndo, onRedo, canUndo, canRedo, componentCount, viewport, onViewportChange, onPreview }: ToolbarProps) {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
       <div className="flex flex-col gap-3">
@@ -74,6 +78,22 @@ export function Toolbar({ pageTitle, onPageTitleChange, lastSavedAt, onClearAll,
             <span className="text-sm font-medium">Mobile</span>
           </button>
         </div>
+
+        <button
+          onClick={onUndo}
+          disabled={!canUndo}
+          className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span className="text-sm font-medium">Undo</span>
+        </button>
+
+        <button
+          onClick={onRedo}
+          disabled={!canRedo}
+          className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span className="text-sm font-medium">Redo</span>
+        </button>
 
         {/* Preview Button */}
         <button

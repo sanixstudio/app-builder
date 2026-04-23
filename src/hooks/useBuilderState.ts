@@ -15,10 +15,46 @@ export function useBuilderState() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [pageTitle, setPageTitle] = useState("Landing Page");
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [past, setPast] = useState<ComponentInstance[][]>([]);
+  const [future, setFuture] = useState<ComponentInstance[][]>([]);
   const [hasLoadedState, setHasLoadedState] = useState(false);
 
   const selectedComponent =
     components.find((component) => component.id === selectedId) ?? null;
+
+  const commitComponents = (updater: (prev: ComponentInstance[]) => ComponentInstance[]) => {
+    setComponents((prev) => {
+      const next = updater(prev);
+      setPast((history) => [...history.slice(-19), prev]);
+      setFuture([]);
+      return next;
+    });
+  };
+
+  const canUndo = past.length > 0;
+  const canRedo = future.length > 0;
+
+  const undo = () => {
+    if (!canUndo) return;
+    setPast((history) => {
+      const previous = history[history.length - 1];
+      setFuture((nextHistory) => [components, ...nextHistory]);
+      setComponents(previous);
+      setSelectedId(null);
+      return history.slice(0, -1);
+    });
+  };
+
+  const redo = () => {
+    if (!canRedo) return;
+    setFuture((history) => {
+      const nextState = history[0];
+      setPast((prevHistory) => [...prevHistory.slice(-19), components]);
+      setComponents(nextState);
+      setSelectedId(null);
+      return history.slice(1);
+    });
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -100,26 +136,26 @@ export function useBuilderState() {
       y,
     });
 
-    setComponents((prev) => [...prev, newComponent]);
+    commitComponents((prev) => [...prev, newComponent]);
     setSelectedId(newComponent.id);
     setDraggedComponent(null);
   };
 
   const handleDeleteComponent = (id: string) => {
-    setComponents((prev) => deleteComponent(prev, id));
+    commitComponents((prev) => deleteComponent(prev, id));
     setSelectedId((prev) => (prev === id ? null : prev));
   };
 
   const handleUpdateComponent = (id: string, newProps: ComponentProps) => {
-    setComponents((prev) => updateComponentProps(prev, id, newProps));
+    commitComponents((prev) => updateComponentProps(prev, id, newProps));
   };
 
   const handleMoveComponent = (id: string, x: number, y: number) => {
-    setComponents((prev) => moveComponent(prev, id, x, y));
+    commitComponents((prev) => moveComponent(prev, id, x, y));
   };
 
   const handleResizeComponent = (id: string, width: number, height: number) => {
-    setComponents((prev) => resizeComponent(prev, id, width, height));
+    commitComponents((prev) => resizeComponent(prev, id, width, height));
   };
 
   const handleApplyTemplate = (template: "heroPage" | "landingPage") => {
@@ -203,12 +239,12 @@ export function useBuilderState() {
       );
     }
 
-    setComponents((prev) => [...prev, ...newComponents]);
+    commitComponents((prev) => [...prev, ...newComponents]);
   };
 
   const handleClearAll = () => {
     if (confirm("Are you sure you want to clear all components?")) {
-      setComponents([]);
+      commitComponents(() => []);
       setSelectedId(null);
     }
   };
@@ -233,5 +269,9 @@ export function useBuilderState() {
     handleResizeComponent,
     handleApplyTemplate,
     handleClearAll,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
   };
 }

@@ -32,6 +32,15 @@ export function Canvas({
 }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  const contentHeight = Math.max(
+    viewportSize.height,
+    components.reduce(
+      (max, component) =>
+        Math.max(max, component.position.y + component.size.height + GRID_SIZE),
+      0
+    )
+  );
+
   const handleCanvasClick = (e: React.MouseEvent) => {
     // Only deselect if clicking directly on the canvas (not on a component)
     if (
@@ -52,8 +61,7 @@ export function Canvas({
         onClick={handleCanvasClick}
         style={{
           width: viewportSize.width,
-          height: viewportSize.height,
-          minHeight: viewportSize.height,
+          minHeight: contentHeight,
           backgroundImage: `
             linear-gradient(to right, #e5e7eb 1px, transparent 1px),
             linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)

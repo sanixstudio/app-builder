@@ -15,6 +15,6 @@ export function clampDropPosition(
 
   return {
     x: Math.max(0, Math.min(x, bounds.width - padding)),
-    y: Math.max(0, Math.min(y, bounds.height - padding)),
+    y: Math.max(0, y),
   };
 }

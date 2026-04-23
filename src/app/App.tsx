@@ -18,6 +18,8 @@ export default function App() {
     isPreviewOpen,
     pageTitle,
     lastSavedAt,
+    canUndo,
+    canRedo,
     setViewport,
     setSelectedId,
     setIsPreviewOpen,
@@ -30,6 +32,8 @@ export default function App() {
     handleResizeComponent,
     handleApplyTemplate,
     handleClearAll,
+    undo,
+    redo,
   } = useBuilderState();
 
   const handleExportHTML = () => {
@@ -53,6 +57,10 @@ export default function App() {
         lastSavedAt={lastSavedAt}
         onClearAll={handleClearAll}
         onExportHTML={handleExportHTML}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
         componentCount={components.length}
         viewport={viewport}
         onViewportChange={setViewport}
