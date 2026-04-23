@@ -1,6 +1,6 @@
 import { ComponentInstance } from "../../types/builder";
 
-export function generateHTML(components: ComponentInstance[]): string {
+export function generateHTML(components: ComponentInstance[], pageTitle: string): string {
   const componentHTML = components
     .map((comp) => {
       const { type, props, position, size } = comp;

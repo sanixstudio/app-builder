@@ -1,6 +1,9 @@
-import { Layers, Download, Trash2, Eye, Monitor, Smartphone } from 'lucide-react';
+import { Layers, Download, Trash2, Eye, Monitor, Smartphone, CheckCircle } from 'lucide-react';
 
 interface ToolbarProps {
+  pageTitle: string;
+  onPageTitleChange: (title: string) => void;
+  lastSavedAt: number | null;
   onClearAll: () => void;
   onExportHTML: () => void;
   componentCount: number;
@@ -9,16 +12,37 @@ interface ToolbarProps {
   onPreview: () => void;
 }
 
-export function Toolbar({ onClearAll, onExportHTML, componentCount, viewport, onViewportChange, onPreview }: ToolbarProps) {
+export function Toolbar({ pageTitle, onPageTitleChange, lastSavedAt, onClearAll, onExportHTML, componentCount, viewport, onViewportChange, onPreview }: ToolbarProps) {
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <Layers className="w-6 h-6 text-blue-600" />
-          <h1 className="font-bold text-xl">Landing Page Builder</h1>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Layers className="w-6 h-6 text-blue-600" />
+            <div>
+              <h1 className="font-bold text-xl">Landing Page Builder</h1>
+              <p className="text-sm text-gray-500">Create responsive landing pages with drag-and-drop tools.</p>
+            </div>
+          </div>
+          <div className="ml-4 px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600">
+            {componentCount} {componentCount === 1 ? 'component' : 'components'}
+          </div>
         </div>
-        <div className="ml-4 px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-600">
-          {componentCount} {componentCount === 1 ? 'component' : 'components'}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="sr-only" htmlFor="page-title">Page title</label>
+          <input
+            id="page-title"
+            type="text"
+            value={pageTitle}
+            onChange={(e) => onPageTitleChange(e.target.value)}
+            className="w-72 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+            placeholder="Page title"
+          />
+          <div className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+            <CheckCircle className="h-3.5 w-3.5" />
+            {lastSavedAt ? `Saved ${Math.round((Date.now() - lastSavedAt) / 1000)}s ago` : 'Saving...'}
+          </div>
         </div>
       </div>
 

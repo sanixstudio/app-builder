@@ -9,8 +9,8 @@ interface CanvasProps {
   onSelectComponent: (id: string) => void;
   onDeselectComponent: () => void;
   onDeleteComponent: (id: string) => void;
-  onDrop: (e: React.DragEvent) => void;
-  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onMoveComponent: (id: string, x: number, y: number) => void;
   onResizeComponent: (id: string, width: number, height: number) => void;
   viewport: "desktop" | "mobile";

@@ -4,7 +4,7 @@ import {
   Play, Star, MessageSquare, Mail, Menu, CreditCard,
   CheckSquare, List, Minus, Users, Award, Zap
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const componentCategories = [
   {
@@ -63,10 +63,27 @@ const componentCategories = [
 
 interface ComponentLibraryProps {
   onDragStart: (type: string, defaultProps: any, e: React.DragEvent) => void;
+  onApplyTemplate: (template: "heroPage" | "landingPage") => void;
 }
 
-export function ComponentLibrary({ onDragStart }: ComponentLibraryProps) {
+export function ComponentLibrary({ onDragStart, onApplyTemplate }: ComponentLibraryProps) {
   const [activeCategory, setActiveCategory] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredCategories = componentCategories
+    .map((category) => ({
+      ...category,
+      items: category.items.filter((item) =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    }))
+    .filter((category) => category.items.length > 0);
+
+  useEffect(() => {
+    if (activeCategory >= filteredCategories.length) {
+      setActiveCategory(0);
+    }
+  }, [filteredCategories.length, activeCategory]);
 
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-full">
@@ -74,8 +91,45 @@ export function ComponentLibrary({ onDragStart }: ComponentLibraryProps) {
         <h2 className="font-semibold">Components</h2>
       </div>
 
+      <div className="space-y-3 p-4 border-b border-gray-200 bg-gray-50">
+        <div>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold">Quick start</h3>
+            <span className="text-xs text-gray-500">Use one-click templates</span>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">Begin with a ready-made landing page layout.</p>
+        </div>
+
+        <div className="grid gap-2">
+          <button
+            type="button"
+            onClick={() => onApplyTemplate('heroPage')}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-sm font-medium text-gray-700 hover:border-blue-300 hover:bg-blue-50"
+          >
+            Hero + Footer
+          </button>
+          <button
+            type="button"
+            onClick={() => onApplyTemplate('landingPage')}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-left text-sm font-medium text-gray-700 hover:border-blue-300 hover:bg-blue-50"
+          >
+            Full Landing Page
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4 border-b border-gray-200 bg-white">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search components"
+          className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+        />
+      </div>
+
       <div className="flex flex-col gap-1 p-2 bg-gray-50">
-        {componentCategories.map((category, index) => (
+        {filteredCategories.map((category, index) => (
           <button
             key={category.name}
             onClick={() => setActiveCategory(index)}
@@ -92,20 +146,26 @@ export function ComponentLibrary({ onDragStart }: ComponentLibraryProps) {
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-2">
-          {componentCategories[activeCategory].items.map((component) => {
-            const Icon = component.icon;
-            return (
-              <div
-                key={component.id}
-                draggable
-                onDragStart={(e) => onDragStart(component.id, component.defaultProps, e)}
-                className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:border-blue-400 hover:bg-blue-50 hover:shadow-sm transition-all"
-              >
-                <Icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
-                <span className="text-sm">{component.name}</span>
-              </div>
-            );
-          })}
+          {filteredCategories[activeCategory]?.items.length ? (
+            filteredCategories[activeCategory].items.map((component) => {
+              const Icon = component.icon;
+              return (
+                <div
+                  key={component.id}
+                  draggable
+                  onDragStart={(e) => onDragStart(component.id, component.defaultProps, e)}
+                  className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg cursor-move hover:border-blue-400 hover:bg-blue-50 hover:shadow-sm transition-all"
+                >
+                  <Icon className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                  <span className="text-sm">{component.name}</span>
+                </div>
+              );
+            })
+          ) : (
+            <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-500 text-center">
+              No matching components found.
+            </div>
+          )}
         </div>
       </div>
     </div>

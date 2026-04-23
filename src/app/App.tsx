@@ -16,26 +16,30 @@ export default function App() {
     selectedComponent,
     viewport,
     isPreviewOpen,
+    pageTitle,
+    lastSavedAt,
     setViewport,
     setSelectedId,
     setIsPreviewOpen,
+    setPageTitle,
     handleDragStart,
     handleDrop,
     handleDeleteComponent,
     handleUpdateComponent,
     handleMoveComponent,
     handleResizeComponent,
+    handleApplyTemplate,
     handleClearAll,
   } = useBuilderState();
 
   const handleExportHTML = () => {
-    const html = generateHTML(components);
+    const html = generateHTML(components, pageTitle);
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = "landing-page.html";
+    a.download = `${pageTitle.replace(/\s+/g, "-").toLowerCase() || "landing-page"}.html`;
     a.click();
 
     URL.revokeObjectURL(url);
@@ -44,6 +48,9 @@ export default function App() {
   return (
     <div className="size-full flex flex-col bg-gray-50">
       <Toolbar
+        pageTitle={pageTitle}
+        onPageTitleChange={setPageTitle}
+        lastSavedAt={lastSavedAt}
         onClearAll={handleClearAll}
         onExportHTML={handleExportHTML}
         componentCount={components.length}
@@ -53,7 +60,7 @@ export default function App() {
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <ComponentLibrary onDragStart={handleDragStart} />
+        <ComponentLibrary onDragStart={handleDragStart} onApplyTemplate={handleApplyTemplate} />
 
         <Canvas
           components={components}
