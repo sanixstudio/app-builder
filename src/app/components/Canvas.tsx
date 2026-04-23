@@ -1,6 +1,7 @@
-import { ComponentInstance } from '../types';
-import { CanvasComponent } from './CanvasComponent';
-import { useRef, useState } from 'react';
+import { ComponentInstance } from "../types";
+import { CanvasComponent } from "./CanvasComponent";
+import { useRef } from "react";
+import { GRID_SIZE } from "../../config/builder";
 
 interface CanvasProps {
   components: ComponentInstance[];
@@ -12,11 +13,9 @@ interface CanvasProps {
   onDragOver: (e: React.DragEvent) => void;
   onMoveComponent: (id: string, x: number, y: number) => void;
   onResizeComponent: (id: string, width: number, height: number) => void;
-  viewport: 'desktop' | 'mobile';
+  viewport: "desktop" | "mobile";
   viewportSize: { width: number; height: number };
 }
-
-const GRID_SIZE = 20;
 
 export function Canvas({
   components,
@@ -35,7 +34,10 @@ export function Canvas({
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     // Only deselect if clicking directly on the canvas (not on a component)
-    if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('canvas-area')) {
+    if (
+      e.target === canvasRef.current ||
+      (e.target as HTMLElement).classList.contains("canvas-area")
+    ) {
       onDeselectComponent();
     }
   };
@@ -59,17 +61,21 @@ export function Canvas({
           backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
         }}
       >
-        {viewport === 'mobile' && (
+        {viewport === "mobile" && (
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-t-md">
             {viewportSize.width}px
           </div>
         )}
-        
+
         {components.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-gray-400 text-lg mb-2">Drag components here to start building</div>
-              <div className="text-gray-300 text-sm">Components will snap to the grid automatically</div>
+              <div className="text-gray-400 text-lg mb-2">
+                Drag components here to start building
+              </div>
+              <div className="text-gray-300 text-sm">
+                Components will snap to the grid automatically
+              </div>
             </div>
           </div>
         ) : (
@@ -81,7 +87,9 @@ export function Canvas({
               onSelect={() => onSelectComponent(component.id)}
               onDelete={() => onDeleteComponent(component.id)}
               onMove={(x, y) => onMoveComponent(component.id, x, y)}
-              onResize={(width, height) => onResizeComponent(component.id, width, height)}
+              onResize={(width, height) =>
+                onResizeComponent(component.id, width, height)
+              }
               gridSize={GRID_SIZE}
             />
           ))
@@ -90,5 +98,3 @@ export function Canvas({
     </div>
   );
 }
-
-export { GRID_SIZE };
