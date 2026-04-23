@@ -1,6 +1,6 @@
 import { ComponentInstance } from "../types";
 import { CanvasComponent } from "./CanvasComponent";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { GRID_SIZE } from "../../config/builder";
 
 interface CanvasProps {
@@ -15,7 +15,9 @@ interface CanvasProps {
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragLeave: () => void;
-  onSnappingGuidesChange: (guides: { vertical?: number; horizontal?: number } | null) => void;
+  onSnappingGuidesChange: (
+    guides: { vertical?: number; horizontal?: number } | null,
+  ) => void;
   onMoveComponent: (id: string, x: number, y: number) => void;
   onResizeComponent: (id: string, width: number, height: number) => void;
   viewport: "desktop" | "mobile";
@@ -47,8 +49,8 @@ export function Canvas({
     components.reduce(
       (max, component) =>
         Math.max(max, component.position.y + component.size.height + GRID_SIZE),
-      0
-    ) + canvasExpansion
+      0,
+    ) + canvasExpansion,
   );
 
   const handleCanvasClick = (e: React.MouseEvent) => {
@@ -78,7 +80,7 @@ export function Canvas({
         y2={contentHeight}
         stroke="#e5e7eb"
         strokeWidth="1"
-      />
+      />,
     );
   }
 
@@ -94,132 +96,137 @@ export function Canvas({
         y2={y}
         stroke="#e5e7eb"
         strokeWidth="1"
-      />
+      />,
     );
   }
 
   return (
-    <div className="flex-1 bg-gray-100 p-8 overflow-auto flex items-start justify-center">
-      <div className="relative">
-        {/* Grid SVG */}
-        <svg
-          className="absolute inset-0 pointer-events-none"
-          width={viewportSize.width}
-          height={contentHeight}
-          style={{ zIndex: 0 }}
-        >
-          {gridLines}
-        </svg>
-
-        {/* Canvas area */}
+    <div className="flex-1 overflow-auto bg-gray-100">
+      <div className="flex min-w-fit items-start justify-center p-8">
         <div
-          ref={canvasRef}
-          className="canvas-area relative bg-transparent rounded-lg"
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onClick={handleCanvasClick}
+          className="relative"
           style={{
             width: viewportSize.width,
             minWidth: viewportSize.width,
-            minHeight: contentHeight,
           }}
         >
-          {viewport === "mobile" && (
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded-t-md z-10">
-              {viewportSize.width}px
-            </div>
-          )}
+          {/* Grid SVG */}
+          <svg
+            className="pointer-events-none absolute inset-0"
+            width={viewportSize.width}
+            height={contentHeight}
+            style={{ zIndex: 0 }}
+          >
+            {gridLines}
+          </svg>
 
-          {components.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center z-10">
-              <div className="text-center">
-                <div className="text-gray-400 text-lg mb-2">
-                  Drag components here to start building
-                </div>
-                <div className="text-gray-300 text-sm">
-                  Components will snap to the grid automatically
+          {/* Canvas area */}
+          <div
+            ref={canvasRef}
+            className="canvas-area relative rounded-lg bg-transparent"
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onClick={handleCanvasClick}
+            style={{
+              width: viewportSize.width,
+              minWidth: viewportSize.width,
+              minHeight: contentHeight,
+            }}
+          >
+            {viewport === "mobile" && (
+              <div className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 rounded-t-md bg-gray-800 px-2 py-1 text-xs text-white">
+                {viewportSize.width}px
+              </div>
+            )}
+
+            {components.length === 0 ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="mb-2 text-lg text-gray-400">
+                    Drag components here to start building
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    Components will snap to the grid automatically
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            components.map((component) => (
-              <CanvasComponent
-                key={component.id}
-                component={component}
-                allComponents={components}
-                isSelected={selectedId === component.id}
-                onSelect={() => onSelectComponent(component.id)}
-                onDelete={() => onDeleteComponent(component.id)}
-                onMove={(x, y) => onMoveComponent(component.id, x, y)}
-                onResize={(width, height) =>
-                  onResizeComponent(component.id, width, height)
-                }
-                gridSize={GRID_SIZE}
-                canvasWidth={viewportSize.width}
-                canvasHeight={contentHeight}
-                onSnappingGuidesChange={onSnappingGuidesChange}
+            ) : (
+              components.map((component) => (
+                <CanvasComponent
+                  key={component.id}
+                  component={component}
+                  allComponents={components}
+                  isSelected={selectedId === component.id}
+                  onSelect={() => onSelectComponent(component.id)}
+                  onDelete={() => onDeleteComponent(component.id)}
+                  onMove={(x, y) => onMoveComponent(component.id, x, y)}
+                  onResize={(width, height) =>
+                    onResizeComponent(component.id, width, height)
+                  }
+                  gridSize={GRID_SIZE}
+                  canvasWidth={viewportSize.width}
+                  canvasHeight={contentHeight}
+                  onSnappingGuidesChange={onSnappingGuidesChange}
+                />
+              ))
+            )}
+
+            {dragPreview && (
+              <div
+                className="pointer-events-none absolute z-20 border-2 border-dashed border-blue-400 bg-blue-50 bg-opacity-30"
+                style={{
+                  left: `${dragPreview.x}px`,
+                  top: `${dragPreview.y}px`,
+                  width: `${dragPreview.width}px`,
+                  height: `${dragPreview.height}px`,
+                }}
               />
-            ))
-          )}
+            )}
 
-          {/* Drag preview */}
-          {dragPreview && (
-            <div
-              className="absolute border-2 border-dashed border-blue-400 bg-blue-50 bg-opacity-30 pointer-events-none z-20"
-              style={{
-                left: `${dragPreview.x}px`,
-                top: `${dragPreview.y}px`,
-                width: `${dragPreview.width}px`,
-                height: `${dragPreview.height}px`,
-              }}
-            />
-          )}
-
-          {/* Canvas expansion indicator */}
-          {canvasExpansion > 0 && (
-            <div
-              className="absolute border-2 border-dashed border-green-400 bg-green-50 bg-opacity-50 pointer-events-none z-20"
-              style={{
-                left: 0,
-                top: contentHeight - canvasExpansion,
-                width: `${viewportSize.width}px`,
-                height: `${canvasExpansion}px`,
-              }}
-            >
-              <div className="flex items-center justify-center h-full text-green-600 text-sm font-medium">
-                New Canvas Area
+            {canvasExpansion > 0 && (
+              <div
+                className="pointer-events-none absolute z-20 border-2 border-dashed border-green-400 bg-green-50 bg-opacity-50"
+                style={{
+                  left: 0,
+                  top: contentHeight - canvasExpansion,
+                  width: `${viewportSize.width}px`,
+                  height: `${canvasExpansion}px`,
+                }}
+              >
+                <div className="flex h-full items-center justify-center text-sm font-medium text-green-600">
+                  New Canvas Area
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Snapping guides */}
-          {snappingGuides && (
-            <>
-              {snappingGuides.vertical !== undefined && (
-                <div
-                  className="absolute bg-red-500 opacity-75 pointer-events-none z-30"
-                  style={{
-                    left: `${snappingGuides.vertical}px`,
-                    top: 0,
-                    width: '1px',
-                    height: `${contentHeight}px`,
-                  }}
-                />
-              )}
-              {snappingGuides.horizontal !== undefined && (
-                <div
-                  className="absolute bg-red-500 opacity-75 pointer-events-none z-30"
-                  style={{
-                    left: 0,
-                    top: `${snappingGuides.horizontal}px`,
-                    width: `${viewportSize.width}px`,
-                    height: '1px',
-                  }}
-                />
-              )}
-            </>
-          )}
+            {snappingGuides && (
+              <>
+                {snappingGuides.vertical !== undefined && (
+                  <div
+                    className="pointer-events-none absolute z-30 bg-red-500 opacity-75"
+                    style={{
+                      left: `${snappingGuides.vertical}px`,
+                      top: 0,
+                      width: "1px",
+                      height: `${contentHeight}px`,
+                    }}
+                  />
+                )}
+                {snappingGuides.horizontal !== undefined && (
+                  <div
+                    className="pointer-events-none absolute z-30 bg-red-500 opacity-75"
+                    style={{
+                      left: 0,
+                      top: `${snappingGuides.horizontal}px`,
+                      width: `${viewportSize.width}px`,
+                      height: "1px",
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
