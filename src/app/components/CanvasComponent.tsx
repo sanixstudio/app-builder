@@ -2,9 +2,11 @@ import { ComponentInstance } from "../types";
 import { Maximize2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { renderComponent } from "./renderers";
+import { calculateSnappingGuides } from "../lib/builder/dragDrop";
 
 interface CanvasComponentProps {
   component: ComponentInstance;
+  allComponents: ComponentInstance[];
   isSelected: boolean;
   onSelect: () => void;
   onDelete: () => void;
@@ -13,10 +15,12 @@ interface CanvasComponentProps {
   gridSize: number;
   canvasWidth: number;
   canvasHeight: number;
+  onSnappingGuidesChange: (guides: { vertical?: number; horizontal?: number } | null) => void;
 }
 
 export function CanvasComponent({
   component,
+  allComponents,
   isSelected,
   onSelect,
   onDelete,
@@ -25,6 +29,7 @@ export function CanvasComponent({
   gridSize,
   canvasWidth,
   canvasHeight,
+  onSnappingGuidesChange,
 }: CanvasComponentProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -55,32 +60,34 @@ export function CanvasComponent({
       const deltaX = e.clientX - dragStartPos.current.x;
       const deltaY = e.clientY - dragStartPos.current.y;
 
-      const newX = snapToGrid(dragStartPos.current.componentX + deltaX);
-      const newY = snapToGrid(dragStartPos.current.componentY + deltaY);
+      const mouseX = dragStartPos.current.componentX + deltaX;
+      const mouseY = dragStartPos.current.componentY + deltaY;
 
-      const maxX = Math.max(0, canvasWidth - component.size.width);
-      const maxY = Math.max(0, canvasHeight - component.size.height);
+      // Get other components for snapping calculation
+      const otherComponents = allComponents.filter(c => c.id !== component.id);
 
-      const clampedX = Math.max(0, Math.min(newX, maxX));
-      const clampedY = Math.max(0, Math.min(newY, maxY));
+      // Calculate snapping position and guides
+      const { x, y, guides } = calculateSnappingGuides(
+        mouseX,
+        mouseY,
+        component.size.width,
+        component.size.height,
+        canvasWidth,
+        canvasHeight,
+        otherComponents
+      );
 
-      onMove(clampedX, clampedY);
+      onSnappingGuidesChange(guides);
+      onMove(x, y);
     } else if (isResizing) {
       const deltaX = e.clientX - resizeStartPos.current.x;
       const deltaY = e.clientY - resizeStartPos.current.y;
 
-      const rawWidth = snapToGrid(
-        Math.max(100, resizeStartPos.current.width + deltaX),
-      );
-      const rawHeight = snapToGrid(
-        Math.max(60, resizeStartPos.current.height + deltaY),
-      );
+      const rawWidth = Math.round((resizeStartPos.current.width + deltaX) / gridSize) * gridSize;
+      const rawHeight = Math.round((resizeStartPos.current.height + deltaY) / gridSize) * gridSize;
 
-      const maxWidth = Math.max(100, canvasWidth - component.position.x);
-      const maxHeight = Math.max(60, canvasHeight - component.position.y);
-
-      const clampedWidth = Math.min(rawWidth, maxWidth);
-      const clampedHeight = Math.min(rawHeight, maxHeight);
+      const clampedWidth = Math.max(gridSize, Math.min(rawWidth, canvasWidth - component.position.x));
+      const clampedHeight = Math.max(gridSize, Math.min(rawHeight, canvasHeight - component.position.y));
 
       onResize(clampedWidth, clampedHeight);
     }
@@ -89,6 +96,7 @@ export function CanvasComponent({
   const handleMouseUp = () => {
     setIsDragging(false);
     setIsResizing(false);
+    onSnappingGuidesChange(null);
   };
 
   const handleResizeMouseDown = (e: React.MouseEvent) => {

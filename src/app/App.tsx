@@ -18,6 +18,9 @@ export default function App() {
     isPreviewOpen,
     pageTitle,
     lastSavedAt,
+    dragPreview,
+    canvasExpansion,
+    snappingGuides,
     canUndo,
     canRedo,
     setViewport,
@@ -25,6 +28,9 @@ export default function App() {
     setIsPreviewOpen,
     setPageTitle,
     handleDragStart,
+    handleDragOver,
+    handleDragLeave,
+    handleSnappingGuidesChange,
     handleDrop,
     handleDeleteComponent,
     handleUpdateComponent,
@@ -73,11 +79,16 @@ export default function App() {
         <Canvas
           components={components}
           selectedId={selectedId}
+          dragPreview={dragPreview}
+          canvasExpansion={canvasExpansion}
+          snappingGuides={snappingGuides}
           onSelectComponent={setSelectedId}
           onDeselectComponent={() => setSelectedId(null)}
           onDeleteComponent={handleDeleteComponent}
           onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onSnappingGuidesChange={handleSnappingGuidesChange}
           onMoveComponent={handleMoveComponent}
           onResizeComponent={handleResizeComponent}
           viewport={viewport}

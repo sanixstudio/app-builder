@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { ComponentInstance, ComponentProps, DraggedComponent, Viewport } from "../app/types/builder";
-import { clampDropPosition, snapToGrid } from "../app/lib/builder/dragDrop";
+import { clampDropPosition, snapToGrid, calculateSnappingGuides } from "../app/lib/builder/dragDrop";
 import { createComponentInstance } from "../app/lib/builder/componentFactory";
 import { deleteComponent, moveComponent, resizeComponent, updateComponentProps } from "../app/lib/builder/componentMutations";
+import { DEFAULT_COMPONENT_SIZE, FALLBACK_COMPONENT_SIZE, GRID_SIZE, VIEWPORT_SIZES } from "../config/builder";
 
 const STORAGE_KEY = "landing-page-builder-state";
 
@@ -18,6 +19,9 @@ export function useBuilderState() {
   const [past, setPast] = useState<ComponentInstance[][]>([]);
   const [future, setFuture] = useState<ComponentInstance[][]>([]);
   const [hasLoadedState, setHasLoadedState] = useState(false);
+  const [dragPreview, setDragPreview] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [canvasExpansion, setCanvasExpansion] = useState<number>(0);
+  const [snappingGuides, setSnappingGuides] = useState<{ vertical?: number; horizontal?: number } | null>(null);
 
   const selectedComponent =
     components.find((component) => component.id === selectedId) ?? null;
@@ -118,6 +122,59 @@ export function useBuilderState() {
     setDraggedComponent({ type, defaultProps });
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!draggedComponent) return;
+
+    const canvasRect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - canvasRect.left;
+    const mouseY = e.clientY - canvasRect.top;
+
+    // Get component size from default props or fallback
+    const componentSize = DEFAULT_COMPONENT_SIZE[draggedComponent.type as keyof typeof DEFAULT_COMPONENT_SIZE] || FALLBACK_COMPONENT_SIZE;
+
+    // Calculate snapping position and guides
+    const { x, y, guides } = calculateSnappingGuides(
+      mouseX,
+      mouseY,
+      componentSize.width,
+      componentSize.height,
+      VIEWPORT_SIZES[viewport].width,
+      VIEWPORT_SIZES[viewport].height,
+      components
+    );
+
+    // Calculate if we need to expand the canvas
+    const currentCanvasHeight = Math.max(
+      VIEWPORT_SIZES[viewport].height,
+      components.reduce(
+        (max, component) =>
+          Math.max(max, component.position.y + component.size.height + GRID_SIZE),
+        0
+      )
+    );
+
+    const componentBottom = y + componentSize.height;
+    const expansionNeeded = Math.max(0, componentBottom - currentCanvasHeight);
+
+    setCanvasExpansion(expansionNeeded);
+    setSnappingGuides(guides);
+    setDragPreview({
+      x,
+      y,
+      width: componentSize.width,
+      height: componentSize.height,
+    });
+  };
+
+  const handleDragLeave = () => {
+    setDragPreview(null);
+    setCanvasExpansion(0);
+    setSnappingGuides(null);
+  };
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -139,6 +196,11 @@ export function useBuilderState() {
     commitComponents((prev) => [...prev, newComponent]);
     setSelectedId(newComponent.id);
     setDraggedComponent(null);
+    setDragPreview(null);
+    setCanvasExpansion(0);
+    setSnappingGuides(null);
+    setDragPreview(null);
+    setCanvasExpansion(0);
   };
 
   const handleDeleteComponent = (id: string) => {
@@ -249,6 +311,10 @@ export function useBuilderState() {
     }
   };
 
+  const handleSnappingGuidesChange = (guides: { vertical?: number; horizontal?: number } | null) => {
+    setSnappingGuides(guides);
+  };
+
   return {
     components,
     selectedId,
@@ -257,11 +323,17 @@ export function useBuilderState() {
     isPreviewOpen,
     pageTitle,
     lastSavedAt,
+    dragPreview,
+    canvasExpansion,
+    snappingGuides,
     setViewport,
     setSelectedId,
     setIsPreviewOpen,
     setPageTitle,
     handleDragStart,
+    handleDragOver,
+    handleDragLeave,
+    handleSnappingGuidesChange,
     handleDrop,
     handleDeleteComponent,
     handleUpdateComponent,
