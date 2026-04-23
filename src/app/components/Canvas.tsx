@@ -81,7 +81,6 @@ export function Canvas({
         ) : (
           components.map((component) => (
             <CanvasComponent
-              key={component.id}
               component={component}
               isSelected={selectedId === component.id}
               onSelect={() => onSelectComponent(component.id)}
@@ -91,6 +90,8 @@ export function Canvas({
                 onResizeComponent(component.id, width, height)
               }
               gridSize={GRID_SIZE}
+              canvasWidth={viewportSize.width}
+              canvasHeight={viewportSize.height}
             />
           ))
         )}
