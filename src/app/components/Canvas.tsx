@@ -61,6 +61,7 @@ export function Canvas({
         onClick={handleCanvasClick}
         style={{
           width: viewportSize.width,
+          minWidth: viewportSize.width,
           minHeight: contentHeight,
           backgroundImage: `
             linear-gradient(to right, #e5e7eb 1px, transparent 1px),
